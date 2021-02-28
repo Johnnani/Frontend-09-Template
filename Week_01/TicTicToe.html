@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    #wrapper{
+      width:300px;
+      height:300px;
+      margin:100px auto;
+    }
+    .cell{
+      width:100px;
+      height:100px;
+      line-height: 98px;
+      display: inline-block;
+      box-sizing: border-box;
+      background-color: green;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      font-size: 60px;
+      color: #f00;
+      vertical-align: middle;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="wrapper">
+  </div>
+</body>
+<script>
+  let pattern = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+  ]
+  show()
+  let color = 1 //color 1=>'o',2=>'x'
+  function show() {
+    let wrapper = document.getElementById('wrapper')
+    wrapper.innerHTML = ''
+
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        let cell = document.createElement('div')
+        cell.classList.add('cell')
+        cell.innerText = pattern[i][j] === 0 ? '' : 
+                        pattern[i][j] === 1 ? '○' : '×'
+        cell.addEventListener('click',() => move(i,j))
+        wrapper.appendChild(cell)
+      }
+    }
+  }
+
+  function move(i,j) {
+    pattern[i][j] = color
+    if(check(pattern,color)){
+      alert(color === 2 ? '× is winner' : color === 1 ? 'o is winner' : '')
+    }
+    
+    color = 3 - color
+    
+    // if(willWin(pattern,color)){
+    //   alert(color === 2 ? '× is winner' : color === 1 ? 'o is winner' : '')
+    // }
+
+    console.log(bestChoice(pattern,color))
+    show()
+  }
+
+  function check(pattern,color) {
+    for(let i = 0; i < 3; i++){
+      let win = true
+      for(let j = 0; j < 3; j++){
+        if(pattern[i][j] !== color){
+          win = false
+        }
+      }
+      if(win) return true   
+    }
+    for(let i = 0; i < 3; i++){
+      let win = true
+      for(let j = 0; j < 3; j++){
+        if(pattern[j][i] !== color){
+          win = false
+        }
+      }
+      if(win) return true
+    }
+    {
+      let win = true
+      for(let i = 0; i < 3; i++){
+        if(pattern[i][i] !== color){
+          win = false
+        }
+      } 
+      if(win) return true
+    }
+    {
+      let win = true
+      for(let i = 0; i < 3; i++){
+        if(pattern[2-i][i] !== color){
+          win = false
+        }
+      } 
+      if(win) return true
+    }   
+  }
+
+  function clone(pattern) {
+    return JSON.parse(JSON.stringify(pattern))
+  }
+  function willWin(pattern,color) {
+    for(let i = 0; i < 3; i++){
+      for(let j = 0; j < 3; j++){
+        if(pattern[i][j])
+          continue
+        let tmp = clone(pattern)
+        tmp[i][j] = color
+        if(check(pattern,color)) return [i,j]
+      }
+    } 
+    return null   
+  }
+  // 1 win,-1 fall,0 tie
+  function bestChoice(pattern,color){
+    let p;
+    if(p = willWin(pattern,color)) {
+      return {
+        point: p,
+        result: 1
+      }
+    }
+    let point = null
+    let result = -2 //最弱局面
+    outer:for(let i = 0; i < 3; i++){
+      for(let j = 0; j < 3; j++){
+        if(pattern[i][j])
+          continue
+        let tmp = clone(pattern)
+        tmp[i][j] = color
+        // 留给对方最差局面
+        let opp = bestChoice(tmp,3-color)
+        if(-opp.result >= result) { 
+          result = -opp.result
+          point = [i,j]
+        }
+        if(result === 1)
+          break outer
+      }
+    }
+    return {
+      point: point,
+      result: point ? result : 0
+    }     
+  }
+</script>
+</html>
